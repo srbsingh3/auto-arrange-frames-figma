@@ -5,7 +5,7 @@ const allFrames = figma.currentPage.findAll(node => node.type === "FRAME")
 // Filter out frames which are nested inside other frames
 const filteredFrames = allFrames.filter(node => node.parent.type === "PAGE")
 
-// Virtually align frames
+// Virtually align frames.
 var myFunction = function(givenArtboard) {
   for (i = 0; i < filteredFrames.length; i++) {
     if (
