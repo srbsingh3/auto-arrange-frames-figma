@@ -13,7 +13,7 @@ switch (selectedCommand) {
       if (a.y + a.height <= b.y) { return -1; }
       if (b.y + b.height <= a.y) { return 1; }
       return a.x - b.x;
-    }
+    });
     
     // Pushing the sorted frames one by one into the parent page
     for (var i = ordered.length - 1; i >= 0; i--) {
@@ -28,7 +28,7 @@ switch (selectedCommand) {
       if (a.x + a.width <= b.x) { return -1; }
       if (b.x + b.width <= a.x) { return 1; }
       return a.y - b.y;
-    }
+    });
 
     // Pushing the sorted frames one by one into the parent page
     for (var j = ordered.length - 1; j >= 0; j--) {
