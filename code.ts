@@ -15,7 +15,7 @@ function sortNodes(nodes: readonly SceneNode[]): SceneNode[] {
 
 switch (selectedCommand) {
   case "lefttoright":
-    var ordered = topLevelNodes.sort(function(a,b) {
+    var ordered = [...topLevelNodes].sort(function(a,b) {
       if (a.y + a.height <= b.y) { return -1; }
       if (b.y + b.height <= a.y) { return 1; }
       return a.x - b.x;
@@ -48,7 +48,7 @@ switch (selectedCommand) {
     break;
   
   case "toptobottom":
-    var ordered = topLevelNodes.sort(function(a,b) {
+    var ordered = [...topLevelNodes].sort(function(a,b) {
       if (a.x + a.width <= b.x) { return -1; }
       if (b.x + b.width <= a.x) { return 1; }
       return a.y - b.y;

@@ -1,11 +1,17 @@
 let selectedCommand = figma.command;
 const mypage = figma.currentPage;
-const allFrames = figma.currentPage.findAll(node => node.type === "FRAME");
-// Filter out frames which are nested inside other frames
-const filteredFrames = allFrames.filter(node => node.parent.type === "PAGE");
+const topLevelNodes = figma.currentPage.children;
+function sortNodes(nodes) {
+    return [...nodes].sort((a, b) => {
+        if (a.y !== b.y) {
+            return a.y - b.y;
+        }
+        return a.x - b.x;
+    });
+}
 switch (selectedCommand) {
     case "lefttoright":
-        var ordered = filteredFrames.sort(function (a, b) {
+        var ordered = topLevelNodes.sort(function (a, b) {
             if (a.y + a.height <= b.y) {
                 return -1;
             }
@@ -14,15 +20,32 @@ switch (selectedCommand) {
             }
             return a.x - b.x;
         });
+        const processedNodesLeftToRight = ordered.map(node => {
+            if (node.type === "SECTION") {
+                return { node: node, sortedChildren: sortNodes(node.children) };
+            }
+            else {
+                return { node: node };
+            }
+        });
         // Pushing the sorted frames one by one into the parent page
-        for (var i = ordered.length - 1; i >= 0; i--) {
-            mypage.appendChild(filteredFrames[i]);
+        // Iterate from processedNodesLeftToRight.length - 1 down to 0
+        for (var i = processedNodesLeftToRight.length - 1; i >= 0; i--) {
+            const currentProcessedNode = processedNodesLeftToRight[i];
+            const nodeToAppend = currentProcessedNode.node;
+            if (currentProcessedNode.sortedChildren) {
+                // This means nodeToAppend is a section
+                for (var j = currentProcessedNode.sortedChildren.length - 1; j >= 0; j--) {
+                    nodeToAppend.appendChild(currentProcessedNode.sortedChildren[j]);
+                }
+            }
+            mypage.appendChild(nodeToAppend);
         }
         // Close plugin with a toast message
-        figma.closePlugin('Frames in your layer-list have been arranged horizontally ↔️');
+        figma.closePlugin('[Jules] Frames in your layer-list have been arranged horizontally ↔️');
         break;
     case "toptobottom":
-        var ordered = filteredFrames.sort(function (a, b) {
+        var ordered = topLevelNodes.sort(function (a, b) {
             if (a.x + a.width <= b.x) {
                 return -1;
             }
@@ -31,9 +54,26 @@ switch (selectedCommand) {
             }
             return a.y - b.y;
         });
+        const processedNodesTopToBottom = ordered.map(node => {
+            if (node.type === "SECTION") {
+                return { node: node, sortedChildren: sortNodes(node.children) };
+            }
+            else {
+                return { node: node };
+            }
+        });
         // Pushing the sorted frames one by one into the parent page
-        for (var j = ordered.length - 1; j >= 0; j--) {
-            mypage.appendChild(filteredFrames[j]);
+        // Iterate from processedNodesTopToBottom.length - 1 down to 0
+        for (var k = processedNodesTopToBottom.length - 1; k >= 0; k--) {
+            const currentProcessedNode = processedNodesTopToBottom[k];
+            const nodeToAppend = currentProcessedNode.node;
+            if (currentProcessedNode.sortedChildren) {
+                // This means nodeToAppend is a section
+                for (var l = currentProcessedNode.sortedChildren.length - 1; l >= 0; l--) {
+                    nodeToAppend.appendChild(currentProcessedNode.sortedChildren[l]);
+                }
+            }
+            mypage.appendChild(nodeToAppend);
         }
-        figma.closePlugin('Frames in your layer-list have been arranged vertically ↕️');
+        figma.closePlugin('[Jules] Frames in your layer-list have been arranged vertically ↕️');
 }
