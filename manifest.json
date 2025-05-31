@@ -3,6 +3,7 @@
   "id": "927024100326339423",
   "api": "1.0.0",
   "main": "code.js",
+  "editorType": ["figma"], 
   "menu": [
     {"name": "Arrange from Left to Right", "command": "lefttoright"},
     {"name": "Arrange from Top to Bottom", "command": "toptobottom"}
