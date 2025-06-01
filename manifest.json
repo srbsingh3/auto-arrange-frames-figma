@@ -2,7 +2,7 @@
   "name": "Auto Arrange Frames",
   "id": "927024100326339423",
   "api": "1.0.0",
-  "main": "code.js",
+  "main": "dist/code.js",
   "editorType": ["figma"], 
   "menu": [
     {"name": "Arrange from Left to Right", "command": "lefttoright"},
