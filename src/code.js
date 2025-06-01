@@ -46,17 +46,23 @@ switch (selectedCommand) {
         break;
     case "toptobottom":
         var ordered = [...topLevelNodes].sort(function (a, b) {
-            if (a.x + a.width <= b.x) {
-                return -1;
+            // First sort by x-position to group frames in the same vertical column
+            if (Math.abs(a.x - b.x) > 1) { // Using 1px threshold to account for small rounding differences
+                return a.x - b.x;
             }
-            if (b.x + b.width <= a.x) {
-                return 1;
-            }
+            // Then sort by y-position within the same column
             return a.y - b.y;
         });
         const processedNodesTopToBottom = ordered.map(node => {
             if (node.type === "SECTION") {
-                return { node: node, sortedChildren: sortNodes(node.children) };
+                // Use the same sorting logic as the top-level nodes for section children
+                const sortedChildren = [...node.children].sort(function (a, b) {
+                    if (Math.abs(a.x - b.x) > 1) {
+                        return a.x - b.x;
+                    }
+                    return a.y - b.y;
+                });
+                return { node: node, sortedChildren: sortedChildren };
             }
             else {
                 return { node: node };
