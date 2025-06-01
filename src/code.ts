@@ -44,7 +44,7 @@ switch (selectedCommand) {
       mypage.appendChild(nodeToAppend);
     }
     // Close plugin with a toast message
-    figma.closePlugin('[Jules] Layers in your layer-list have been arranged horizontally ↔️');
+    figma.closePlugin('Layers in your layer-list have been arranged horizontally ↔️');
     break;
   
   case "toptobottom":
@@ -76,5 +76,5 @@ switch (selectedCommand) {
       }
       mypage.appendChild(nodeToAppend);
     }
-    figma.closePlugin('[Jules] Layers in your layer-list have been arranged vertically ↕️');
+    figma.closePlugin('Layers in your layer-list have been arranged vertically ↕️');
   }
