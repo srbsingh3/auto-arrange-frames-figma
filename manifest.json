@@ -7,5 +7,9 @@
   "menu": [
     {"name": "Arrange from Left to Right", "command": "lefttoright"},
     {"name": "Arrange from Top to Bottom", "command": "toptobottom"}
-  ]
+  ],
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
+  "documentAccess": "dynamic-page"
 }
