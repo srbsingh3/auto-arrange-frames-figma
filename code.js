@@ -11,7 +11,7 @@ function sortNodes(nodes) {
 }
 switch (selectedCommand) {
     case "lefttoright":
-        var ordered = topLevelNodes.sort(function (a, b) {
+        var ordered = [...topLevelNodes].sort(function (a, b) {
             if (a.y + a.height <= b.y) {
                 return -1;
             }
@@ -45,7 +45,7 @@ switch (selectedCommand) {
         figma.closePlugin('[Jules] Frames in your layer-list have been arranged horizontally ↔️');
         break;
     case "toptobottom":
-        var ordered = topLevelNodes.sort(function (a, b) {
+        var ordered = [...topLevelNodes].sort(function (a, b) {
             if (a.x + a.width <= b.x) {
                 return -1;
             }

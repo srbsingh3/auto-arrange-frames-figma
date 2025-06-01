@@ -2,13 +2,20 @@
   "name": "Auto-Arrange-Frames",
   "version": "1.0.0",
   "description": "Your Figma plugin",
-  "main": "code.js",
+  "main": "dist/code.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "watch": "tsc -p tsconfig.json --watch",
+    "dev": "npm run watch"
   },
   "author": "",
   "license": "",
   "devDependencies": {
-    "@figma/plugin-typings": "^1.19.0"
+    "@figma/plugin-typings": "^1.113.0",
+    "typescript": "^5.3.3",
+    "prettier": "^3.2.5",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^6.21.0"
   }
 }
