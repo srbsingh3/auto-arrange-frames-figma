@@ -1,5 +1,5 @@
 {
-  "name": "Auto-Arrange-Frames",
+  "name": "auto-arrange-frames",
   "version": "1.0.0",
   "description": "Your Figma plugin",
   "main": "dist/code.js",
