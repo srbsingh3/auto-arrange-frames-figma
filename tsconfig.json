@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2017",
     "lib": ["es6", "dom"],
     "moduleResolution": "node",
     "typeRoots": ["./node_modules/@types", "./node_modules/@figma"],
@@ -8,7 +8,8 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "module": "commonjs"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

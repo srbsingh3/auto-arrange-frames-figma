@@ -9,7 +9,8 @@
     {"name": "Arrange from Top to Bottom", "command": "toptobottom"}
   ],
   "networkAccess": {
-    "allowedDomains": ["none"]
+    "allowedDomains": ["https://api.mixpanel.com"]
   },
-  "documentAccess": "dynamic-page"
+  "documentAccess": "dynamic-page",
+  "permissions": ["currentuser"]
 }
