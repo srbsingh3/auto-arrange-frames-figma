@@ -30,7 +30,7 @@ async function trackEvent(eventName, properties) {
         // Create the event data with only allowed properties
         const eventData = {
             event: eventName,
-            properties: Object.assign(Object.assign({}, properties), { token: MIXPANEL_TOKEN, user_id: userId, time: Date.now() })
+            properties: Object.assign(Object.assign({}, properties), { token: MIXPANEL_TOKEN, distinct_id: userId, time: Date.now() })
         };
         // Send event to Mixpanel using server-side tracking
         const response = await fetch('https://api.mixpanel.com/track', {
@@ -56,7 +56,7 @@ async function identifyUser() {
         // Send user properties to Mixpanel using server-side tracking
         const userData = {
             $token: MIXPANEL_TOKEN,
-            $user_id: userId,
+            $distinct_id: userId,
             $set: {
                 $last_login: new Date().toISOString()
             }

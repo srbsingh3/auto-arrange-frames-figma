@@ -32,7 +32,7 @@ async function trackEvent(eventName: string, properties: Record<string, any>) {
       properties: {
         ...properties,
         token: MIXPANEL_TOKEN,
-        user_id: userId,
+        distinct_id: userId,
         time: Date.now()
       }
     };
@@ -64,7 +64,7 @@ async function identifyUser() {
     // Send user properties to Mixpanel using server-side tracking
     const userData = {
       $token: MIXPANEL_TOKEN,
-      $user_id: userId,
+      $distinct_id: userId,
       $set: {
         $last_login: new Date().toISOString()
       }
