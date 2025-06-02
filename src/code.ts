@@ -1,18 +1,12 @@
 // Analytics helper functions
 const MIXPANEL_TOKEN = 'f2fc5d8644d4213519364c164f39a155';
+const PLUGIN_VERSION = '2.0.0'; // This should match manifest.json version
+const PLUGIN_NAME = 'Auto Arrange Frames'; // This should match manifest.json name
 
-// Generate an anonymized ID for the user
+// Get Figma's anonymized user ID
 function getAnonymizedUserId(): string {
   try {
-    // Create a simple hash of the user ID to anonymize it
-    const userId = figma.currentUser?.id || 'anonymous';
-    let hash = 0;
-    for (let i = 0; i < userId.length; i++) {
-      const char = userId.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return 'user_' + Math.abs(hash).toString(16);
+    return figma.currentUser?.id || 'anonymous';
   } catch (error) {
     return 'anonymous';
   }
@@ -30,15 +24,15 @@ function getUserName(): string {
 // Track event using Mixpanel's server-side tracking
 async function trackEvent(eventName: string, properties: Record<string, any>) {
   try {
-    const distinctId = getAnonymizedUserId();
+    const userId = getAnonymizedUserId();
     
-    // Create the event data
+    // Create the event data with only allowed properties
     const eventData = {
       event: eventName,
       properties: {
         ...properties,
         token: MIXPANEL_TOKEN,
-        distinct_id: distinctId,
+        user_id: userId,
         time: Date.now()
       }
     };
@@ -70,16 +64,15 @@ async function trackEvent(eventName: string, properties: Record<string, any>) {
 // Track user properties
 async function identifyUser() {
   try {
-    const distinctId = getAnonymizedUserId();
-    const userProperties = {
-      $last_login: new Date().toISOString()
-    };
-
+    const userId = getAnonymizedUserId();
+    
     // Send user properties to Mixpanel using server-side tracking
     const userData = {
       $token: MIXPANEL_TOKEN,
-      $distinct_id: distinctId,
-      $set: userProperties
+      $user_id: userId,
+      $set: {
+        $last_login: new Date().toISOString()
+      }
     };
 
     const response = await fetch('https://api.mixpanel.com/engage', {
@@ -96,11 +89,11 @@ async function identifyUser() {
 
     // Store locally for backup
     await figma.clientStorage.setAsync('mixpanel_user_properties', {
-      distinct_id: distinctId,
-      properties: userProperties
+      user_id: userId,
+      properties: { $last_login: new Date().toISOString() }
     });
 
-    console.log('User identified:', distinctId);
+    console.log('User identified:', userId);
   } catch (error) {
     console.error('Failed to identify user:', error);
   }
@@ -118,22 +111,44 @@ function sortNodes(nodes: readonly SceneNode[]): SceneNode[] {
 // Helper function to count node types
 function countNodeTypes(nodes: readonly SceneNode[]): Record<string, number> {
   const counts: Record<string, number> = {};
-  nodes.forEach(node => {
+  
+  function countNode(node: SceneNode) {
+    // Count the current node
     counts[node.type] = (counts[node.type] || 0) + 1;
-  });
+    
+    // If it's a section, count its children
+    if (node.type === 'SECTION') {
+      node.children.forEach(child => countNode(child));
+    }
+  }
+  
+  // Count all nodes and their children
+  nodes.forEach(node => countNode(node));
+  
   return counts;
+}
+
+// Helper function to get section children counts
+function getSectionChildrenCounts(nodes: readonly SceneNode[]): number[] {
+  return nodes
+    .filter(node => node.type === 'SECTION')
+    .map(section => section.children.length);
 }
 
 // Helper function to track analytics
 async function trackAnalytics(command: string, initialNodes: readonly SceneNode[], processedNodes: any[]) {
   const initialNodeTypes = countNodeTypes(initialNodes);
-  const processedNodeTypes = countNodeTypes(processedNodes.map(p => p.node));
+  const sectionChildrenCounts = getSectionChildrenCounts(initialNodes);
   
-  await trackEvent('arrange_layers', {
-    command,
+  await trackEvent(command, {
     initial_node_types: initialNodeTypes,
-    processed_node_types: processedNodeTypes,
-    total_nodes: initialNodes.length
+    total_nodes: initialNodes.length,
+    section_children_counts: sectionChildrenCounts,
+    user_id: getAnonymizedUserId(),
+    invocation_context: {
+      had_selection: figma.currentPage.selection.length > 0,
+      selection_count: figma.currentPage.selection.length
+    }
   });
 }
 
