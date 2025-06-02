@@ -50,11 +50,6 @@ async function trackEvent(eventName: string, properties: Record<string, any>) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    // Also store locally for backup
-    const events = await figma.clientStorage.getAsync('mixpanel_events') || [];
-    events.push(eventData);
-    await figma.clientStorage.setAsync('mixpanel_events', events);
-
     console.log('Event tracked:', eventName, properties);
   } catch (error) {
     console.error('Failed to track event:', error);
@@ -86,12 +81,6 @@ async function identifyUser() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-
-    // Store locally for backup
-    await figma.clientStorage.setAsync('mixpanel_user_properties', {
-      user_id: userId,
-      properties: { $last_login: new Date().toISOString() }
-    });
 
     console.log('User identified:', userId);
   } catch (error) {
