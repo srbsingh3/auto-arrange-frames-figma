@@ -24,21 +24,28 @@ function getUserName() {
     }
 }
 // Track event using Mixpanel's server-side tracking
-function trackEvent(eventName, properties) {
-    const userId = getAnonymizedUserId();
-    // Create the event data with only allowed properties
-    const eventData = {
-        event: eventName,
-        properties: Object.assign(Object.assign({}, properties), { token: MIXPANEL_TOKEN, distinct_id: userId, time: Date.now() })
-    };
-    // Send event to Mixpanel using server-side tracking (non-blocking)
-    fetch('https://api.mixpanel.com/track', {
-        method: 'POST',
-        headers: {
-            'Accept': 'text/plain'
-        },
-        body: `data=${encodeURIComponent(JSON.stringify([eventData]))}`
-    }).catch(error => {
+async function trackEvent(eventName, properties) {
+    try {
+        const userId = getAnonymizedUserId();
+        // Create the event data with only allowed properties
+        const eventData = {
+            event: eventName,
+            properties: Object.assign(Object.assign({}, properties), { token: MIXPANEL_TOKEN, distinct_id: userId, time: Date.now() })
+        };
+        // Send event to Mixpanel using server-side tracking
+        const response = await fetch('https://api.mixpanel.com/track', {
+            method: 'POST',
+            headers: {
+                'Accept': 'text/plain'
+            },
+            body: `data=${encodeURIComponent(JSON.stringify([eventData]))}`
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        console.log('Event tracked:', eventName, properties);
+    }
+    catch (error) {
         console.error('Failed to track event:', error);
     });
 }
