@@ -181,7 +181,7 @@ async function main() {
         }
         mypage.appendChild(nodeToAppend);
       }
-      figma.closePlugin('[MP1] Layers in your layer-list have been arranged horizontally ↔️');
+      figma.closePlugin('Layers in your layer-list have been arranged horizontally ↔️');
       break;
     
     case "toptobottom":
@@ -221,7 +221,7 @@ async function main() {
         }
         mypage.appendChild(nodeToAppend);
       }
-      figma.closePlugin('[MP] Layers in your layer-list have been arranged vertically ↕️');
+      figma.closePlugin('Layers in your layer-list have been arranged vertically ↕️');
       break;
   }
 }
