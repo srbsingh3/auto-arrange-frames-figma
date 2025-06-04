@@ -47,28 +47,35 @@ async function trackEvent(eventName, properties) {
     }
     catch (error) {
         console.error('Failed to track event:', error);
-    });
+    }
 }
 // Track user properties
-function identifyUser() {
-    const userId = getAnonymizedUserId();
-    // Send user properties to Mixpanel using server-side tracking (non-blocking)
-    const userData = {
-        $token: MIXPANEL_TOKEN,
-        $distinct_id: userId,
-        $set: {
-            $last_login: new Date().toISOString()
+async function identifyUser() {
+    try {
+        const userId = getAnonymizedUserId();
+        // Send user properties to Mixpanel using server-side tracking
+        const userData = {
+            $token: MIXPANEL_TOKEN,
+            $distinct_id: userId,
+            $set: {
+                $last_login: new Date().toISOString()
+            }
+        };
+        const response = await fetch('https://api.mixpanel.com/engage', {
+            method: 'POST',
+            headers: {
+                'Accept': 'text/plain'
+            },
+            body: `data=${encodeURIComponent(JSON.stringify([userData]))}`
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    };
-    fetch('https://api.mixpanel.com/engage', {
-        method: 'POST',
-        headers: {
-            'Accept': 'text/plain'
-        },
-        body: `data=${encodeURIComponent(JSON.stringify([userData]))}`
-    }).catch(error => {
+        console.log('User identified:', userId);
+    }
+    catch (error) {
         console.error('Failed to identify user:', error);
-    });
+    }
 }
 function sortNodes(nodes) {
     return [...nodes].sort((a, b) => {
@@ -100,10 +107,10 @@ function getSectionChildrenCounts(nodes) {
         .map(section => section.children.length);
 }
 // Helper function to track analytics
-function trackAnalytics(command, initialNodes, processedNodes) {
+async function trackAnalytics(command, initialNodes, processedNodes) {
     const initialNodeTypes = countNodeTypes(initialNodes);
     const sectionChildrenCounts = getSectionChildrenCounts(initialNodes);
-    trackEvent(command, {
+    await trackEvent(command, {
         initial_node_types: initialNodeTypes,
         total_nodes: initialNodes.length,
         section_children_counts: sectionChildrenCounts,
@@ -116,8 +123,8 @@ function trackAnalytics(command, initialNodes, processedNodes) {
 }
 // Main function to handle the plugin logic
 async function main() {
-    // Initialize analytics (non-blocking)
-    identifyUser();
+    // Initialize analytics
+    await identifyUser();
     const selectedCommand = figma.command;
     const mypage = figma.currentPage;
     const topLevelNodes = figma.currentPage.children;
@@ -140,8 +147,8 @@ async function main() {
                     return { node: node };
                 }
             });
-            // Track analytics (non-blocking)
-            trackAnalytics('lefttoright', topLevelNodes, processedNodesLeftToRight);
+            // Track analytics before processing
+            await trackAnalytics('lefttoright', topLevelNodes, processedNodesLeftToRight);
             // Pushing the sorted frames one by one into the parent page
             for (var i = processedNodesLeftToRight.length - 1; i >= 0; i--) {
                 const currentProcessedNode = processedNodesLeftToRight[i];
@@ -176,8 +183,8 @@ async function main() {
                     return { node: node };
                 }
             });
-            // Track analytics (non-blocking)
-            trackAnalytics('toptobottom', topLevelNodes, processedNodesTopToBottom);
+            // Track analytics before processing
+            await trackAnalytics('toptobottom', topLevelNodes, processedNodesTopToBottom);
             // Pushing the sorted frames one by one into the parent page
             for (var k = processedNodesTopToBottom.length - 1; k >= 0; k--) {
                 const currentProcessedNode = processedNodesTopToBottom[k];

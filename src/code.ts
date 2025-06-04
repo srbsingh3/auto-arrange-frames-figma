@@ -22,54 +22,70 @@ function getUserName(): string {
 }
 
 // Track event using Mixpanel's server-side tracking
-function trackEvent(eventName: string, properties: Record<string, any>) {
-  const userId = getAnonymizedUserId();
-  
-  // Create the event data with only allowed properties
-  const eventData = {
-    event: eventName,
-    properties: {
-      ...properties,
-      token: MIXPANEL_TOKEN,
-      distinct_id: userId,
-      time: Date.now()
-    }
-  };
+async function trackEvent(eventName: string, properties: Record<string, any>) {
+  try {
+    const userId = getAnonymizedUserId();
+    
+    // Create the event data with only allowed properties
+    const eventData = {
+      event: eventName,
+      properties: {
+        ...properties,
+        token: MIXPANEL_TOKEN,
+        distinct_id: userId,
+        time: Date.now()
+      }
+    };
 
-  // Send event to Mixpanel using server-side tracking (non-blocking)
-  fetch('https://api.mixpanel.com/track', {
-    method: 'POST',
-    headers: {
-      'Accept': 'text/plain'
-    },
-    body: `data=${encodeURIComponent(JSON.stringify([eventData]))}`
-  }).catch(error => {
+    // Send event to Mixpanel using server-side tracking
+    const response = await fetch('https://api.mixpanel.com/track', {
+      method: 'POST',
+      headers: {
+        'Accept': 'text/plain'
+      },
+      body: `data=${encodeURIComponent(JSON.stringify([eventData]))}`
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    console.log('Event tracked:', eventName, properties);
+  } catch (error) {
     console.error('Failed to track event:', error);
-  });
+  }
 }
 
 // Track user properties
-function identifyUser() {
-  const userId = getAnonymizedUserId();
-  
-  // Send user properties to Mixpanel using server-side tracking (non-blocking)
-  const userData = {
-    $token: MIXPANEL_TOKEN,
-    $distinct_id: userId,
-    $set: {
-      $last_login: new Date().toISOString()
-    }
-  };
+async function identifyUser() {
+  try {
+    const userId = getAnonymizedUserId();
+    
+    // Send user properties to Mixpanel using server-side tracking
+    const userData = {
+      $token: MIXPANEL_TOKEN,
+      $distinct_id: userId,
+      $set: {
+        $last_login: new Date().toISOString()
+      }
+    };
 
-  fetch('https://api.mixpanel.com/engage', {
-    method: 'POST',
-    headers: {
-      'Accept': 'text/plain'
-    },
-    body: `data=${encodeURIComponent(JSON.stringify([userData]))}`
-  }).catch(error => {
+    const response = await fetch('https://api.mixpanel.com/engage', {
+      method: 'POST',
+      headers: {
+        'Accept': 'text/plain'
+      },
+      body: `data=${encodeURIComponent(JSON.stringify([userData]))}`
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    console.log('User identified:', userId);
+  } catch (error) {
     console.error('Failed to identify user:', error);
-  });
+  }
 }
 
 function sortNodes(nodes: readonly SceneNode[]): SceneNode[] {
@@ -109,11 +125,11 @@ function getSectionChildrenCounts(nodes: readonly SceneNode[]): number[] {
 }
 
 // Helper function to track analytics
-function trackAnalytics(command: string, initialNodes: readonly SceneNode[], processedNodes: any[]) {
+async function trackAnalytics(command: string, initialNodes: readonly SceneNode[], processedNodes: any[]) {
   const initialNodeTypes = countNodeTypes(initialNodes);
   const sectionChildrenCounts = getSectionChildrenCounts(initialNodes);
   
-  trackEvent(command, {
+  await trackEvent(command, {
     initial_node_types: initialNodeTypes,
     total_nodes: initialNodes.length,
     section_children_counts: sectionChildrenCounts,
@@ -127,8 +143,8 @@ function trackAnalytics(command: string, initialNodes: readonly SceneNode[], pro
 
 // Main function to handle the plugin logic
 async function main() {
-  // Initialize analytics (non-blocking)
-  identifyUser();
+  // Initialize analytics
+  await identifyUser();
 
   const selectedCommand = figma.command;
   const mypage = figma.currentPage;
@@ -150,8 +166,8 @@ async function main() {
         }
       });
       
-      // Track analytics (non-blocking)
-      trackAnalytics('lefttoright', topLevelNodes, processedNodesLeftToRight);
+      // Track analytics before processing
+      await trackAnalytics('lefttoright', topLevelNodes, processedNodesLeftToRight);
       
       // Pushing the sorted frames one by one into the parent page
       for (var i = processedNodesLeftToRight.length - 1; i >= 0; i--) {
@@ -190,8 +206,8 @@ async function main() {
         }
       });
 
-      // Track analytics (non-blocking)
-      trackAnalytics('toptobottom', topLevelNodes, processedNodesTopToBottom);
+      // Track analytics before processing
+      await trackAnalytics('toptobottom', topLevelNodes, processedNodesTopToBottom);
 
       // Pushing the sorted frames one by one into the parent page
       for (var k = processedNodesTopToBottom.length - 1; k >= 0; k--) {
