@@ -24,58 +24,44 @@ function getUserName() {
     }
 }
 // Track event using Mixpanel's server-side tracking
-async function trackEvent(eventName, properties) {
-    try {
-        const userId = getAnonymizedUserId();
-        // Create the event data with only allowed properties
-        const eventData = {
-            event: eventName,
-            properties: Object.assign(Object.assign({}, properties), { token: MIXPANEL_TOKEN, distinct_id: userId, time: Date.now() })
-        };
-        // Send event to Mixpanel using server-side tracking
-        const response = await fetch('https://api.mixpanel.com/track', {
-            method: 'POST',
-            headers: {
-                'Accept': 'text/plain'
-            },
-            body: `data=${encodeURIComponent(JSON.stringify([eventData]))}`
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        console.log('Event tracked:', eventName, properties);
-    }
-    catch (error) {
+function trackEvent(eventName, properties) {
+    const userId = getAnonymizedUserId();
+    // Create the event data with only allowed properties
+    const eventData = {
+        event: eventName,
+        properties: Object.assign(Object.assign({}, properties), { token: MIXPANEL_TOKEN, distinct_id: userId, time: Date.now() })
+    };
+    // Send event to Mixpanel using server-side tracking (non-blocking)
+    fetch('https://api.mixpanel.com/track', {
+        method: 'POST',
+        headers: {
+            'Accept': 'text/plain'
+        },
+        body: `data=${encodeURIComponent(JSON.stringify([eventData]))}`
+    }).catch(error => {
         console.error('Failed to track event:', error);
-    }
+    });
 }
 // Track user properties
-async function identifyUser() {
-    try {
-        const userId = getAnonymizedUserId();
-        // Send user properties to Mixpanel using server-side tracking
-        const userData = {
-            $token: MIXPANEL_TOKEN,
-            $distinct_id: userId,
-            $set: {
-                $last_login: new Date().toISOString()
-            }
-        };
-        const response = await fetch('https://api.mixpanel.com/engage', {
-            method: 'POST',
-            headers: {
-                'Accept': 'text/plain'
-            },
-            body: `data=${encodeURIComponent(JSON.stringify([userData]))}`
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+function identifyUser() {
+    const userId = getAnonymizedUserId();
+    // Send user properties to Mixpanel using server-side tracking (non-blocking)
+    const userData = {
+        $token: MIXPANEL_TOKEN,
+        $distinct_id: userId,
+        $set: {
+            $last_login: new Date().toISOString()
         }
-        console.log('User identified:', userId);
-    }
-    catch (error) {
+    };
+    fetch('https://api.mixpanel.com/engage', {
+        method: 'POST',
+        headers: {
+            'Accept': 'text/plain'
+        },
+        body: `data=${encodeURIComponent(JSON.stringify([userData]))}`
+    }).catch(error => {
         console.error('Failed to identify user:', error);
-    }
+    });
 }
 function sortNodes(nodes) {
     return [...nodes].sort((a, b) => {
@@ -107,10 +93,10 @@ function getSectionChildrenCounts(nodes) {
         .map(section => section.children.length);
 }
 // Helper function to track analytics
-async function trackAnalytics(command, initialNodes, processedNodes) {
+function trackAnalytics(command, initialNodes, processedNodes) {
     const initialNodeTypes = countNodeTypes(initialNodes);
     const sectionChildrenCounts = getSectionChildrenCounts(initialNodes);
-    await trackEvent(command, {
+    trackEvent(command, {
         initial_node_types: initialNodeTypes,
         total_nodes: initialNodes.length,
         section_children_counts: sectionChildrenCounts,
@@ -123,8 +109,8 @@ async function trackAnalytics(command, initialNodes, processedNodes) {
 }
 // Main function to handle the plugin logic
 async function main() {
-    // Initialize analytics
-    await identifyUser();
+    // Initialize analytics (non-blocking)
+    identifyUser();
     const selectedCommand = figma.command;
     const mypage = figma.currentPage;
     const topLevelNodes = figma.currentPage.children;
@@ -147,8 +133,8 @@ async function main() {
                     return { node: node };
                 }
             });
-            // Track analytics before processing
-            await trackAnalytics('lefttoright', topLevelNodes, processedNodesLeftToRight);
+            // Track analytics (non-blocking)
+            trackAnalytics('lefttoright', topLevelNodes, processedNodesLeftToRight);
             // Pushing the sorted frames one by one into the parent page
             for (var i = processedNodesLeftToRight.length - 1; i >= 0; i--) {
                 const currentProcessedNode = processedNodesLeftToRight[i];
@@ -160,7 +146,7 @@ async function main() {
                 }
                 mypage.appendChild(nodeToAppend);
             }
-            figma.closePlugin('[MP1] Layers in your layer-list have been arranged horizontally ↔️');
+            figma.closePlugin('Layers in your layer-list have been arranged horizontally ↔️');
             break;
         case "toptobottom":
             var ordered = [...topLevelNodes].sort(function (a, b) {
@@ -183,8 +169,8 @@ async function main() {
                     return { node: node };
                 }
             });
-            // Track analytics before processing
-            await trackAnalytics('toptobottom', topLevelNodes, processedNodesTopToBottom);
+            // Track analytics (non-blocking)
+            trackAnalytics('toptobottom', topLevelNodes, processedNodesTopToBottom);
             // Pushing the sorted frames one by one into the parent page
             for (var k = processedNodesTopToBottom.length - 1; k >= 0; k--) {
                 const currentProcessedNode = processedNodesTopToBottom[k];
@@ -196,7 +182,7 @@ async function main() {
                 }
                 mypage.appendChild(nodeToAppend);
             }
-            figma.closePlugin('[MP] Layers in your layer-list have been arranged vertically ↕️');
+            figma.closePlugin('Layers in your layer-list have been arranged vertically ↕️');
             break;
     }
 }
