@@ -116,7 +116,6 @@ async function trackAnalytics(command, initialNodes, processedNodes) {
         section_children_counts: sectionChildrenCounts,
         user_id: getAnonymizedUserId(),
         invocation_context: {
-            had_selection: figma.currentPage.selection.length > 0,
             selection_count: figma.currentPage.selection.length
         }
     });
@@ -196,6 +195,7 @@ async function main() {
                 }
                 mypage.appendChild(nodeToAppend);
             }
+            // console.log('Working code from 5 June 2025');
             figma.closePlugin('Layers in your layer-list have been arranged vertically ↕️');
             break;
     }
