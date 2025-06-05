@@ -43,7 +43,7 @@ async function trackEvent(eventName, properties) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        console.log('Event tracked:', eventName, properties);
+        // console.log('Event tracked:', eventName, properties);
     }
     catch (error) {
         console.error('Failed to track event:', error);
@@ -71,7 +71,7 @@ async function identifyUser() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        console.log('User identified:', userId);
+        // console.log('User identified:', userId);
     }
     catch (error) {
         console.error('Failed to identify user:', error);
